@@ -24,10 +24,8 @@ public class HttpServiceImpl implements HttpService{
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
             return Optional.of(response.body());
         } catch (IOException | InterruptedException e) {
-            //Log Impl
-            System.out.println("[Error] :" + e.getMessage());
+            System.out.println("[Error]: " + e.getMessage());
             return Optional.empty();
         }
-
     }
 }
