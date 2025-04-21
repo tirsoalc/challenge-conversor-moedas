@@ -4,6 +4,7 @@ import exception.ScannerInputMismatchException;
 import service.ExchangeRateService;
 import util.ScannerWrapper;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class ConsoleUI {
@@ -21,12 +22,16 @@ public class ConsoleUI {
 
     public void mountUI() {
         System.out.println("Seja bem-vindo/a ao Conversor de Moeda");
+        String[] operations = operationMenu();
+        int exitOption = searchForExitOption(operations);
+        int lastMenuOption = operations.length;
+        int firstMenuOption = 1;
         while(true) {
-            operationMenu();
-
+            showOperationMenu(operations);
             try {
                 int option = scannerWrapper.getIntInput();
-                if (option == 2) break;
+                if (option == exitOption) break;
+                if (option < firstMenuOption || option > lastMenuOption) continue;
 
                 System.out.println("Digite a sigla moeda de origem ex: USD, BRL, AUS");
                 String baseCurrency = scannerWrapper.getStringInput();
@@ -46,8 +51,23 @@ public class ConsoleUI {
         scanner.close();
     }
 
-    public void operationMenu() {
-        System.out.println("1) Converter moeda");
-        System.out.println("2) Sair");
+    private String[] operationMenu() {
+        return new String[] {
+                "1) Converter moeda",
+                "2) Sair"
+        };
+    }
+
+    private void showOperationMenu(String[] options) {
+        for(String option : options) {
+            System.out.println(option);
+        }
+    }
+
+    private int searchForExitOption(String[] options) {
+        for(String option : options) {
+            if (option.contains("Sair")) return Character.getNumericValue(option.charAt(0));
+        }
+        throw new RuntimeException("[Error]: Menu sem opção de saída correta, Exemplo de opção saída correta: \"4) Sair\" com S maiúsculo");
     }
 }
