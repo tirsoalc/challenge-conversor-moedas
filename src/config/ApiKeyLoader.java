@@ -11,10 +11,10 @@ public class ApiKeyLoader {
         try(FileInputStream input = new FileInputStream("config.properties")){
             properties.load(input);
             if(!properties.containsKey("api.key")) {
-                System.out.println("[Error]: A api.key não foi encontrada no arquivo config.properties");
-                throw new RuntimeException("A api.key não foi encontrada no arquivo config.properties");
+                System.out.println("[Error]: O campo api.key não foi encontrado no arquivo config.properties");
+                throw new RuntimeException("O campo api.key não foi encontrado no arquivo config.properties");
             }
-            System.out.println("[Info]: A api.key foi encontrada");
+            System.out.println("[Info]: O campo api.key foi encontrado no arquivo config.properties");
 
         } catch (IOException e) {
             System.out.println("[Error]: O arquivo config.properties não foi encontrado na raiz do projeto");

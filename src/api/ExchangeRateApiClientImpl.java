@@ -9,6 +9,7 @@ import exception.ExchangeRateApiException;
 import http.HttpService;
 import model.*;
 
+import java.net.http.HttpResponse;
 import java.util.Optional;
 
 public class ExchangeRateApiClientImpl implements ExchangeRateApiClient {
@@ -37,14 +38,14 @@ public class ExchangeRateApiClientImpl implements ExchangeRateApiClient {
                 "contexto={endpoint: %s, moeda origem: %s, moeda final: %s, quantidade: %.2f}",
                 PAIR_CONVERSION_ENDPOINT,baseCurrencyAcronym,targetCurrencyAcronym,amount);
         System.out.println(infoLog);
-        Optional<String> bodyResponse = client.get(url);
+        Optional<HttpResponse<String>> response = client.get(url);
 
-        if (bodyResponse.isEmpty()) {
+        if (response.isEmpty()) {
             return Optional.empty();
         }
 
-        String jsonResponse = bodyResponse.get();
-        checkForResponseError(jsonResponse);
+        checkForResponseError(response.get());
+        String jsonResponse = response.get().body();
 
         ExchangeRatePairResponse exchangeRatePairResponse = toExchangeRatePairResponse(jsonResponse);
 
@@ -62,13 +63,22 @@ public class ExchangeRateApiClientImpl implements ExchangeRateApiClient {
         return url;
     }
 
-    private void checkForResponseError(String jsonResponse) {
-        if(jsonResponse.contains("error")) {
-            ExchangeRateErrorResponse exchangeRateErrorResponse = toExchangeRateErrorResponse(jsonResponse);
-            System.out.println(exchangeRateErrorResponse);
+    private void checkForResponseError(HttpResponse<String> response) {
+        String bodyResponse = response.body();
+
+
+        if (bodyResponse.contains("error")){
+            ExchangeRateErrorResponse exchangeRateErrorResponse = toExchangeRateErrorResponse(bodyResponse);
             System.out.println("[Error]: ExchangeRate Api Error " + exchangeRateErrorResponse.errorType());
             throw new ExchangeRateApiException("ExchangeRate API Error: " + exchangeRateErrorResponse.errorType());
         }
+
+        if (response.statusCode() == 404) {
+            System.out.println("[Error]: Requisição não foi bem-sucedida; contexto={404 Not Found}");
+            throw new ExchangeRateApiException("ExchangeRate API Error: 404 endereço não encontrado");
+        }
+
+
     }
 
     private ExchangeRatePairResponse toExchangeRatePairResponse(String json) {

@@ -1,7 +1,8 @@
 package http;
 
+import java.net.http.HttpResponse;
 import java.util.Optional;
 
 public interface HttpService {
-    Optional<String> get(String url);
+    Optional<HttpResponse<String>> get(String url);
 }

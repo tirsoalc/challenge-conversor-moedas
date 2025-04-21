@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import config.ApiKeyLoader;
 import http.HttpService;
 import http.HttpServiceImpl;
+import model.ExchangeRateErrorResponse;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,16 +34,28 @@ public class CurrencyNameDatabaseInMem implements CurrencyNameDatabase{
     }
 
     private static void populateEnglishTranslationMap() {
-        //Apenas simulando um banco de dados pré-existente
+        //Apenas simulando um banco de dados pré-existente utilizando-se da API externa para popular o nome das moedas
         HttpService httpService = new HttpServiceImpl();
-        Optional<String> jsonResponse = httpService.get("https://v6.exchangerate-api.com/v6/"+API_KEY+"/codes");
+        Optional<String> jsonResponse = Optional.ofNullable(
+                httpService.get("https://v6.exchangerate-api.com/v6/" + API_KEY + "/codes")
+                        .get().body());
+
+        if (jsonResponse.isPresent() && jsonResponse.get().contains("error")) {
+            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_DASHES).create();
+            ExchangeRateErrorResponse errorResponse = gson.fromJson(jsonResponse.get(),ExchangeRateErrorResponse.class);
+            System.out.println("[Error]: Erro ao tentar se comunicar com a API; contexto={endpoint: /codes, erro: "+errorResponse.errorType()+"}");
+            throw new RuntimeException("Erro inesperado: " + errorResponse.errorType());
+        }
+
         Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-        ApiResponse apiResponse = gson.fromJson(jsonResponse.get(),ApiResponse.class);
+        ApiResponse apiResponse = gson.fromJson(jsonResponse.get(), ApiResponse.class);
         for (List<String> supportedCode : apiResponse.supportedCodes) {
             String acronym = supportedCode.get(0);
             String englishName = supportedCode.get(1);
-            englishTranslationMap.put(acronym,englishName);
+            englishTranslationMap.put(acronym, englishName);
         }
+
+
     }
 
     private static class ApiResponse {

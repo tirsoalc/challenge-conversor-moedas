@@ -14,7 +14,7 @@ public class HttpServiceImpl implements HttpService{
     HttpClient client = HttpClient.newBuilder().build();
 
     @Override
-    public Optional<String> get(String url) {
+    public Optional<HttpResponse<String>> get(String url) {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .GET()
@@ -22,7 +22,7 @@ public class HttpServiceImpl implements HttpService{
 
         try {
             HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-            return Optional.of(response.body());
+            return Optional.of(response);
         } catch (IOException | InterruptedException e) {
             System.out.println("[Error]: " + e.getMessage());
             return Optional.empty();
